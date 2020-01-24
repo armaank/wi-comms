@@ -1,7 +1,7 @@
 %% ECE408 Wireless Communications
 % Armaan Kohli
 % Spring 2020
-% project 1
+% Project 1
 clear all;
 close all;
 clc;
@@ -77,3 +77,6 @@ for m = M
     title(title2)
 
 end % End M-ary iteration
+
+%% Part 2: Equalizing a Channel with Moderate ISI for BPSK
+
