@@ -6,7 +6,7 @@ clear all;
 close all;
 clc;
 
-%% Improved Link for Moderate ISI via Turbo Codes
+%% Part 3: Improved Link for Moderate ISI via Turbo Codes
 
 M = 16; % The M-Ary Number
 k = log2(M); % bits per symbol
@@ -98,7 +98,7 @@ BER=mean(BER,1);
 Bit_perSymbol_Rate = log2(M)*((nSym) / 1000)*codeRate
 Bit_Rate = log2(M)*nSym *codeRate
 
-figure(3)
+figure(1)
 % Generating Waterfall Plot
 semilogy(SNR_Vec,BER,'-*')
 grid on
