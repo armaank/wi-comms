@@ -1,0 +1,290 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>coded_qam_sim</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-26"><meta name="DC.source" content="coded_qam_sim.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">ECE408 Wireless Communications</a></li><li><a href="#2">Part 3: Improved Link for Moderate ISI via Turbo Codes</a></li></ul></div><h2 id="1">ECE408 Wireless Communications</h2><p>Armaan Kohli Spring 2020 Project 1</p><pre class="codeinput">clear <span class="string">all</span>;
+close <span class="string">all</span>;
+clc;
+</pre><h2 id="2">Part 3: Improved Link for Moderate ISI via Turbo Codes</h2><pre class="codeinput">M = 16; <span class="comment">% The M-Ary Number</span>
+k = log2(M); <span class="comment">% bits per symbol</span>
+SNR_Vec = 0:2:16;
+nSym = 1000; <span class="comment">% Number of symbols per frame</span>
+numIter = 5; <span class="comment">% Number of iterations</span>
+lenSNR = length(SNR_Vec);
+
+<span class="comment">% Initializing the BER vector</span>
+berVec = zeros(numIter,lenSNR);
+
+<span class="comment">% Create a turbo convolutional encoder and decoder with two iterations</span>
+turboEnc = comm.TurboEncoder(<span class="string">'InterleaverIndicesSource'</span>,<span class="string">'Input port'</span>);
+turboDec = comm.TurboDecoder(<span class="string">'InterleaverIndicesSource'</span>,<span class="string">'Input port'</span>, <span class="keyword">...</span>
+    <span class="string">'NumIterations'</span>,2);
+
+<span class="comment">% Creating an AWGN channel with moderate ISI</span>
+awgnChannel = comm.AWGNChannel(<span class="string">'NoiseMethod'</span>,<span class="string">'Variance'</span>,<span class="string">'Variance'</span>,1);
+chan = [1 .2 .4];
+errorRate = comm.ErrorRate;
+
+<span class="comment">% Code rate for the convolutional coding in side the turbo encoder</span>
+codeRate = 2/3;
+
+<span class="keyword">for</span> i=1:numIter
+    <span class="keyword">for</span> j = 1:length(SNR_Vec)
+
+        <span class="comment">% Initializing error statistics vector to calculate the BER</span>
+        errorStats = zeros(1,3);
+        <span class="comment">% Calculating the noise variance and converting EbNo to SNR with</span>
+        <span class="comment">% modificaitons to account for the error control coding</span>
+        EsNo = SNR_Vec(j) + 10*log10(k);
+        snrdB = EsNo + 10*log10(codeRate);
+        noiseVar = 1./(10.^(snrdB/10));
+
+        <span class="comment">% Adding the proper noise to the channel cooresponding to the SNR</span>
+        awgnChannel.Variance = noiseVar;
+
+        <span class="comment">% The while loop is needed to ensure the simulation is run long</span>
+        <span class="comment">% enough to generate a waterfall curve. For a faster, but shorter</span>
+        <span class="comment">% BER curve, change 1e7 to 1e6</span>
+        <span class="keyword">while</span> errorStats(3) &lt; 1e7
+
+            <span class="comment">% Generate random binary data</span>
+            data = randi([0 1], (nSym)*k, 1);
+
+            <span class="comment">% Interleaver indices for the Turbo encoder</span>
+            intrlvrInd = randperm(nSym*k);
+
+            <span class="comment">% Turbo encode the data</span>
+            encodedData = turboEnc(data,intrlvrInd);
+
+            <span class="comment">% Modulate the encoded data - no need to reshape bits into</span>
+            <span class="comment">% touples because the modulator is set to take bit inputs</span>
+            modSignal = qammod(encodedData,M,<span class="string">'InputType'</span>,<span class="string">'bit'</span>,<span class="keyword">...</span>
+                <span class="string">'UnitAveragePower'</span>,true);
+
+            <span class="comment">% Apply channel ISI</span>
+            modSignal=filter(chan,1,modSignal);
+
+            <span class="comment">% Pass the signal through the AWGN channel</span>
+            receivedSignal = awgnChannel(modSignal);
+
+            <span class="comment">% Demodulate the received signal using log-liklihood ratio</span>
+            <span class="comment">% (soft decision decoding)</span>
+            <span class="comment">%receivedSignal = equalize(eq1,receivedSignal,data(1:50));</span>
+            demodSignal = qamdemod(receivedSignal,M,<span class="string">'OutputType'</span>,<span class="string">'llr'</span>, <span class="keyword">...</span>
+            <span class="string">'UnitAveragePower'</span>,true,<span class="string">'NoiseVariance'</span>,noiseVar);
+
+            <span class="comment">% Turbo decode the demodulated signal. We invert the</span>
+            <span class="comment">% demodulating signal because the turbo decoder expects the</span>
+            <span class="comment">% bits mapping in opposite order to that the demodulator</span>
+            <span class="comment">% outputs</span>
+            receivedBits = turboDec(-demodSignal,intrlvrInd);
+
+            <span class="comment">% Calculate the bit errors</span>
+            errorStats = errorRate(data,receivedBits);
+        <span class="keyword">end</span>
+        <span class="comment">% Save the BER data for the specified SNR and reset the bit and</span>
+        <span class="comment">% reset the bit error rate object</span>
+        berVec(i,j) = errorStats(1);
+        reset(errorRate)
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+berVec=mean(berVec,1);
+
+bps = log2(M)*((nSym) / 1000)*codeRate
+
+figure(1)
+<span class="comment">% Generating Waterfall Plot</span>
+semilogy(SNR_Vec,berVec,<span class="string">'-*'</span>)
+grid <span class="string">on</span>
+xlabel(<span class="string">'SNR (dB)'</span>)
+ylabel(<span class="string">'Bit Error Rate'</span>)
+uncodedBER = berawgn(SNR_Vec,<span class="string">'qam'</span>,M); <span class="comment">% Estimate of uncoded BER</span>
+hold <span class="string">on</span>
+semilogy(SNR_Vec,uncodedBER)
+title(<span class="string">"BER Waterfall Curves for 16-QAM with Moderate ISI"</span>);
+legend(<span class="string">'Turbo Coded with ISI'</span>,<span class="string">'Uncoded with no ISI'</span>,<span class="string">'location'</span>,<span class="string">'best'</span>)
+</pre><pre class="codeoutput">
+bps =
+
+    2.6667
+
+</pre><img vspace="5" hspace="5" src="coded_qam_sim_01.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% ECE408 Wireless Communications
+% Armaan Kohli
+% Spring 2020
+% Project 1
+clear all;
+close all;
+clc;
+
+%% Part 3: Improved Link for Moderate ISI via Turbo Codes
+
+M = 16; % The M-Ary Number
+k = log2(M); % bits per symbol
+SNR_Vec = 0:2:16;
+nSym = 1000; % Number of symbols per frame
+numIter = 5; % Number of iterations
+lenSNR = length(SNR_Vec);
+
+% Initializing the BER vector 
+berVec = zeros(numIter,lenSNR);
+
+% Create a turbo convolutional encoder and decoder with two iterations
+turboEnc = comm.TurboEncoder('InterleaverIndicesSource','Input port');
+turboDec = comm.TurboDecoder('InterleaverIndicesSource','Input port', ...
+    'NumIterations',2);
+
+% Creating an AWGN channel with moderate ISI
+awgnChannel = comm.AWGNChannel('NoiseMethod','Variance','Variance',1);
+chan = [1 .2 .4];
+errorRate = comm.ErrorRate;
+
+% Code rate for the convolutional coding in side the turbo encoder
+codeRate = 2/3; 
+
+for i=1:numIter
+    for j = 1:length(SNR_Vec)
+
+        % Initializing error statistics vector to calculate the BER
+        errorStats = zeros(1,3);
+        % Calculating the noise variance and converting EbNo to SNR with
+        % modificaitons to account for the error control coding
+        EsNo = SNR_Vec(j) + 10*log10(k);       
+        snrdB = EsNo + 10*log10(codeRate);      
+        noiseVar = 1./(10.^(snrdB/10)); 
+        
+        % Adding the proper noise to the channel cooresponding to the SNR
+        awgnChannel.Variance = noiseVar;
+        
+        % The while loop is needed to ensure the simulation is run long
+        % enough to generate a waterfall curve. For a faster, but shorter
+        % BER curve, change 1e7 to 1e6
+        while errorStats(3) < 1e7
+            
+            % Generate random binary data
+            data = randi([0 1], (nSym)*k, 1);
+            
+            % Interleaver indices for the Turbo encoder
+            intrlvrInd = randperm(nSym*k);
+            
+            % Turbo encode the data
+            encodedData = turboEnc(data,intrlvrInd);
+            
+            % Modulate the encoded data - no need to reshape bits into
+            % touples because the modulator is set to take bit inputs
+            modSignal = qammod(encodedData,M,'InputType','bit',...
+                'UnitAveragePower',true);
+            
+            % Apply channel ISI
+            modSignal=filter(chan,1,modSignal);
+            
+            % Pass the signal through the AWGN channel
+            receivedSignal = awgnChannel(modSignal);
+            
+            % Demodulate the received signal using log-liklihood ratio
+            % (soft decision decoding)
+            %receivedSignal = equalize(eq1,receivedSignal,data(1:50));
+            demodSignal = qamdemod(receivedSignal,M,'OutputType','llr', ...
+            'UnitAveragePower',true,'NoiseVariance',noiseVar);
+
+            % Turbo decode the demodulated signal. We invert the
+            % demodulating signal because the turbo decoder expects the
+            % bits mapping in opposite order to that the demodulator
+            % outputs
+            receivedBits = turboDec(-demodSignal,intrlvrInd);
+            
+            % Calculate the bit errors
+            errorStats = errorRate(data,receivedBits);
+        end
+        % Save the BER data for the specified SNR and reset the bit and
+        % reset the bit error rate object
+        berVec(i,j) = errorStats(1);
+        reset(errorRate)
+    end
+end
+
+berVec=mean(berVec,1);
+
+bps = log2(M)*((nSym) / 1000)*codeRate
+
+figure(1)
+% Generating Waterfall Plot
+semilogy(SNR_Vec,berVec,'-*')
+grid on
+xlabel('SNR (dB)')
+ylabel('Bit Error Rate')
+uncodedBER = berawgn(SNR_Vec,'qam',M); % Estimate of uncoded BER
+hold on
+semilogy(SNR_Vec,uncodedBER)
+title("BER Waterfall Curves for 16-QAM with Moderate ISI");
+legend('Turbo Coded with ISI','Uncoded with no ISI','location','best')
+
+
+##### SOURCE END #####
+--></body></html>

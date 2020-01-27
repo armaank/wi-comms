@@ -1,0 +1,230 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>qam_sim</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-26"><meta name="DC.source" content="qam_sim.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">ECE408 Wireless Communications</a></li><li><a href="#2">Part 1: QAM Simulation w/ No Channel</a></li></ul></div><h2 id="1">ECE408 Wireless Communications</h2><p>Armaan Kohli Spring 2020 Project 1</p><pre class="codeinput">clear <span class="string">all</span>;
+close <span class="string">all</span>;
+clc;
+</pre><h2 id="2">Part 1: QAM Simulation w/ No Channel</h2><pre class="codeinput">numIter = 10; <span class="comment">% The number of iterations of the monte-carlo simulation</span>
+nSym = 1000; <span class="comment">% The number of symbols per packet</span>
+SNR_Vec = 0:2:16;
+lenSNR = length(SNR_Vec);
+
+M = [4, 16]; <span class="comment">% The M-ary number</span>
+
+chan = 1; <span class="comment">% No channel</span>
+
+<span class="comment">% Create a vector to store the BER computed during each iteration</span>
+berVec = zeros(numIter, lenSNR);
+
+<span class="comment">% Run the simulation numIter amount of times for both 4-ary and 16-ary QAM</span>
+<span class="keyword">for</span> m = M
+    <span class="keyword">for</span> ii = 1:numIter
+
+        K = log2(m); <span class="comment">% bits per symbol</span>
+        <span class="comment">% Generating random bits to send</span>
+        bits = randi(2,[nSym*K, 1])-1;
+
+        <span class="comment">% Reshape bits into K-tuples</span>
+        data = reshape(bits,length(bits)/K,K);
+        msg = bi2de(data);
+
+        <span class="keyword">for</span> jj = 1:lenSNR <span class="comment">% One iteration of the simulation at each SNR</span>
+
+            tx = qammod(msg,m); <span class="comment">% QAM modulate the signal</span>
+
+            txChan = tx; <span class="comment">% Perfect channel - introduces no ISI</span>
+
+            <span class="comment">% Convert from EbNo to SNR and add AWGN</span>
+            txNoisy = awgn(txChan,(10*log10(K) + SNR_Vec(jj)),<span class="string">'measured'</span>);
+
+            rx = qamdemod(txNoisy,m); <span class="comment">% Demodulate</span>
+
+            <span class="comment">% Converting symbols back to bits</span>
+            rxMSG = de2bi(rx,K);
+            rxMSG = rxMSG(:);
+
+            <span class="comment">% Compute and store the BER for this iteration</span>
+
+            [~, berVec(ii,jj)] = biterr(bits, rxMSG);
+        <span class="keyword">end</span> <span class="comment">% End SNR iteration</span>
+    <span class="keyword">end</span> <span class="comment">% End numIter iteration</span>
+
+    <span class="comment">% Generate plots for each M-ary scheme</span>
+
+    <span class="comment">% Generate scatterplot</span>
+    title1 = sprintf(<span class="string">"Scatter Plot for %d - ary QAM with no ISI"</span>,m);
+    sPlotFig = scatterplot(txNoisy,1,0,<span class="string">'g.'</span>);
+    hold <span class="string">on</span>;
+    figure;
+    scatterplot(tx,1,0,<span class="string">'k*'</span>,sPlotFig)
+    hold <span class="string">off</span>;
+    title(title1)
+
+    <span class="comment">% Compute and plot the mean BER</span>
+    ber = mean(berVec,1);
+    figure;
+    semilogy(SNR_Vec,ber)
+    grid <span class="string">on</span>;
+    <span class="comment">% Compute the theoretical BER for this scenario and graph waterfall</span>
+    berTheory = berawgn(SNR_Vec, <span class="string">'qam'</span>, m); <span class="comment">% theoretical BER</span>
+    title2 = sprintf(<span class="string">"BER Waterfall Curve for %d - ary QAM with no ISI"</span>,m);
+    hold <span class="string">on</span>;
+    semilogy(SNR_Vec, berTheory)
+    xlabel(<span class="string">'SNR(dB)'</span>);  ylabel(<span class="string">'BER'</span>);
+    legend(<span class="string">'BER'</span>,<span class="string">'Theoretical BER'</span>,<span class="string">'Location'</span>,<span class="string">'southwest'</span>)
+    hold <span class="string">off</span>;
+    title(title2)
+
+<span class="keyword">end</span> <span class="comment">% End M-ary iteration</span>
+</pre><img vspace="5" hspace="5" src="qam_sim_01.png" alt=""> <img vspace="5" hspace="5" src="qam_sim_02.png" alt=""> <img vspace="5" hspace="5" src="qam_sim_03.png" alt=""> <img vspace="5" hspace="5" src="qam_sim_04.png" alt=""> <img vspace="5" hspace="5" src="qam_sim_05.png" alt=""> <img vspace="5" hspace="5" src="qam_sim_06.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% ECE408 Wireless Communications
+% Armaan Kohli
+% Spring 2020
+% Project 1
+clear all;
+close all;
+clc;
+%% Part 1: QAM Simulation w/ No Channel
+
+numIter = 10; % The number of iterations of the monte-carlo simulation
+nSym = 1000; % The number of symbols per packet
+SNR_Vec = 0:2:16;
+lenSNR = length(SNR_Vec);
+
+M = [4, 16]; % The M-ary number
+
+chan = 1; % No channel
+
+% Create a vector to store the BER computed during each iteration
+berVec = zeros(numIter, lenSNR);
+
+% Run the simulation numIter amount of times for both 4-ary and 16-ary QAM
+for m = M
+    for ii = 1:numIter
+        
+        K = log2(m); % bits per symbol
+        % Generating random bits to send
+        bits = randi(2,[nSym*K, 1])-1; 
+        
+        % Reshape bits into K-tuples
+        data = reshape(bits,length(bits)/K,K);   
+        msg = bi2de(data);
+
+        for jj = 1:lenSNR % One iteration of the simulation at each SNR
+
+            tx = qammod(msg,m); % QAM modulate the signal
+
+            txChan = tx; % Perfect channel - introduces no ISI
+
+            % Convert from EbNo to SNR and add AWGN
+            txNoisy = awgn(txChan,(10*log10(K) + SNR_Vec(jj)),'measured'); 
+            
+            rx = qamdemod(txNoisy,m); % Demodulate
+
+            % Converting symbols back to bits
+            rxMSG = de2bi(rx,K);
+            rxMSG = rxMSG(:); 
+
+            % Compute and store the BER for this iteration
+
+            [~, berVec(ii,jj)] = biterr(bits, rxMSG);  
+        end % End SNR iteration
+    end % End numIter iteration
+    
+    % Generate plots for each M-ary scheme
+    
+    % Generate scatterplot
+    title1 = sprintf("Scatter Plot for %d - ary QAM with no ISI",m);
+    sPlotFig = scatterplot(txNoisy,1,0,'g.');
+    hold on;
+    figure;
+    scatterplot(tx,1,0,'k*',sPlotFig)
+    hold off;
+    title(title1)
+
+    % Compute and plot the mean BER
+    ber = mean(berVec,1);
+    figure;
+    semilogy(SNR_Vec,ber)
+    grid on;
+    % Compute the theoretical BER for this scenario and graph waterfall 
+    berTheory = berawgn(SNR_Vec, 'qam', m); % theoretical BER
+    title2 = sprintf("BER Waterfall Curve for %d - ary QAM with no ISI",m);
+    hold on;
+    semilogy(SNR_Vec, berTheory)
+    xlabel('SNR(dB)');  ylabel('BER');
+    legend('BER','Theoretical BER','Location','southwest')
+    hold off;
+    title(title2)
+
+end % End M-ary iteration
+
+
+##### SOURCE END #####
+--></body></html>

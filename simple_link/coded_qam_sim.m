@@ -9,14 +9,14 @@ clc;
 %% Part 3: Improved Link for Moderate ISI via Turbo Codes
 
 M = 16; % The M-Ary Number
-k = log2(M); % bits per symbol
+k = log2(M); % bits per symbol for the modulation scheme
 SNR_Vec = 0:2:16;
 nSym = 1000; % Number of symbols per frame
-numIter= 1; % Number of iterations
+numIter = 5; % Number of iterations
 lenSNR = length(SNR_Vec);
 
 % Initializing the BER vector 
-BER = zeros(numIter,lenSNR);
+berVec = zeros(numIter,lenSNR);
 
 % Create a turbo convolutional encoder and decoder with two iterations
 turboEnc = comm.TurboEncoder('InterleaverIndicesSource','Input port');
@@ -28,10 +28,9 @@ awgnChannel = comm.AWGNChannel('NoiseMethod','Variance','Variance',1);
 chan = [1 .2 .4];
 errorRate = comm.ErrorRate;
 
-codeRate = 2/3; 
 % Code rate for the convolutional coding in side the turbo encoder
+codeRate = 2/3; 
 
-tic
 for i=1:numIter
     for j = 1:length(SNR_Vec)
 
@@ -88,19 +87,18 @@ for i=1:numIter
         end
         % Save the BER data for the specified SNR and reset the bit and
         % reset the bit error rate object
-        BER(i,j) = errorStats(1);
+        berVec(i,j) = errorStats(1);
         reset(errorRate)
     end
 end
-toc
-BER=mean(BER,1);
 
-Bit_perSymbol_Rate = log2(M)*((nSym) / 1000)*codeRate
-Bit_Rate = log2(M)*nSym *codeRate
+berVec=mean(berVec,1);
+
+bps = log2(M)*((nSym) / 1000)*codeRate
 
 figure(1)
 % Generating Waterfall Plot
-semilogy(SNR_Vec,BER,'-*')
+semilogy(SNR_Vec,berVec,'-*')
 grid on
 xlabel('SNR (dB)')
 ylabel('Bit Error Rate')

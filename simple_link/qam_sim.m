@@ -7,7 +7,7 @@ close all;
 clc;
 %% Part 1: QAM Simulation w/ No Channel
 
-numIter = 5; % The number of iterations of the monte-carlo simulation
+numIter = 10; % The number of iterations of the monte-carlo simulation
 nSym = 1000; % The number of symbols per packet
 SNR_Vec = 0:2:16;
 lenSNR = length(SNR_Vec);
@@ -23,7 +23,7 @@ berVec = zeros(numIter, lenSNR);
 for m = M
     for ii = 1:numIter
         
-        K = log2(m); % COMMENT HERE
+        K = log2(m); % bits per symbol
         % Generating random bits to send
         bits = randi(2,[nSym*K, 1])-1; 
         
@@ -43,8 +43,8 @@ for m = M
             rx = qamdemod(txNoisy,m); % Demodulate
 
             % Converting symbols back to bits
-            dataOutMatrix = de2bi(rx,K);
-            rxMSG = dataOutMatrix(:); 
+            rxMSG = de2bi(rx,K);
+            rxMSG = rxMSG(:); 
 
             % Compute and store the BER for this iteration
 
@@ -58,22 +58,24 @@ for m = M
     title1 = sprintf("Scatter Plot for %d - ary QAM with no ISI",m);
     sPlotFig = scatterplot(txNoisy,1,0,'g.');
     hold on;
-    figure(1);
+    figure;
     scatterplot(tx,1,0,'k*',sPlotFig)
     hold off;
     title(title1)
 
     % Compute and plot the mean BER
     ber = mean(berVec,1);
-    figure(2)
+    figure;
     semilogy(SNR_Vec,ber)
+    grid on;
     % Compute the theoretical BER for this scenario and graph waterfall 
     berTheory = berawgn(SNR_Vec, 'qam', m); % theoretical BER
     title2 = sprintf("BER Waterfall Curve for %d - ary QAM with no ISI",m);
-    hold on
+    hold on;
     semilogy(SNR_Vec, berTheory)
     xlabel('SNR(dB)');  ylabel('BER');
     legend('BER','Theoretical BER','Location','southwest')
+    hold off;
     title(title2)
 
 end % End M-ary iteration
