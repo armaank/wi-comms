@@ -8,7 +8,7 @@ clc;
 %% Part 2: Equalizing a Channel with Moderate ISI for BPSK
 
 numIter = 5; 
-nSym = 100000;    % Needed to increase number of symbols to verify that BER   
+nSym = 1000;      % Need to increase number of symbols to verify that BER   
 SNR_Vec = 0:2:16; % meet the 10e-4 at 12dB SNR specification
 lenSNR = length(SNR_Vec);
 
