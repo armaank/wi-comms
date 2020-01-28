@@ -4,7 +4,7 @@ Simulations & Projects for ECE408: Wireless Communications
 
 All simulations are written in MATLAB2019a
 
-Requirements include the DSP and Communicaitons toolbox
+Requirements include the DSP and Communications toolboxes
 
 ### Project 1: Simple Wireless Link
 Simulating QAM, equalizing channels and error control coding
