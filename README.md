@@ -11,5 +11,7 @@ Simulating QAM, equalizing channels and error control coding
 
 You can find my full report ![here](simple_link/report/report.pdf).
 
+### Project 2: Alamouti Codes
+Simulating transmitter space-time diversity for Rayleigh flat-fading channels
 
-
+You can find my full report ![here](alamouti/report/report.pdf).

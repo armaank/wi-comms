@@ -1,0 +1,632 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>alamouti</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-05"><meta name="DC.source" content="alamouti.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">space-time diversity via Alamouti Codes</a></li><li><a href="#2">simulation parameters</a></li><li><a href="#3">simulation 1 - uncoded bpsk</a></li><li><a href="#4">simulation 2 - bpsk w/ mrrc (2 rx)</a></li><li><a href="#5">simulation 3 - bpsk w/ mrrc (4 rx)</a></li><li><a href="#6">simulation 4 - bpsk w/ Alamouti coding (2 tx, 1 rx)</a></li><li><a href="#7">Simulate BPSK through rayleigh channel w/ Alamouti (2 Tx, 2 Rx)</a></li><li><a href="#8">Plot</a></li></ul></div><h2 id="1">space-time diversity via Alamouti Codes</h2><p>wireless link simulation over rayleigh flat-fading channel</p><pre class="codeinput">clc; clear <span class="string">all</span>;
+</pre><h2 id="2">simulation parameters</h2><pre class="codeinput"><span class="comment">% modulation order</span>
+M = 2;
+
+<span class="comment">% bits per symbol</span>
+k = log2(M);
+
+<span class="comment">% instantiating modulators</span>
+pskmod = comm.PSKModulator(M,0);
+pskdemod = comm.PSKDemodulator(M,0);
+
+EbNo = 0:2:50;
+snr = EbNo + 10*log10(k);
+
+<span class="comment">% messsage length</span>
+N = 1e6;
+
+<span class="comment">% number of iterations per simulaton</span>
+n_iter = 20;
+
+<span class="comment">% init ber vectors</span>
+ber_bpsk = zeros(n_iter, length(snr));
+ber_mrrc2 = zeros(n_iter, length(snr));
+ber_mrrc4 = zeros(n_iter, length(snr));
+ber_alamouti2 = zeros(n_iter, length(snr));
+ber_alamouti4 = zeros(n_iter, length(snr));
+
+<span class="comment">% generating Rayleigh flat-fading channels</span>
+fd = 10;
+raychan1 = rayleigh(fd, N);
+raychan2 = rayleigh(fd, N);
+raychan3 = rayleigh(fd, N);
+raychan4 = rayleigh(fd, N);
+</pre><h2 id="3">simulation 1 - uncoded bpsk</h2><pre class="codeinput"><span class="keyword">for</span> ii=1:n_iter
+    <span class="comment">% init</span>
+    v_demod = zeros(N,length(snr));
+    v_rx = zeros(N,length(snr));
+
+    <span class="comment">% generate random message</span>
+    v = randi([0 M-1],N,1);
+
+    <span class="comment">% modulate</span>
+    v_mod = step(pskmod,v);
+
+    <span class="comment">% transmit through channel</span>
+    v_raychan = raychan1.*v_mod;
+
+    <span class="keyword">for</span> jj=1:length(snr)
+
+       v_rx(:,jj) = awgn(v_raychan,snr(jj),<span class="string">'measured'</span>)./raychan1;
+
+       v_demod(:,jj) = step(pskdemod,v_rx(:,jj));
+
+    <span class="keyword">end</span>
+
+    <span class="comment">% compute ber</span>
+    [~,ber1] = biterr(v_demod,v);
+    ber_bpsk(ii,:) = ber1;
+
+<span class="keyword">end</span>
+
+ber_bpsk = mean(ber_bpsk,1);
+</pre><h2 id="4">simulation 2 - bpsk w/ mrrc (2 rx)</h2><pre class="codeinput"><span class="comment">% init</span>
+combiner = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+<span class="comment">% generate random message</span>
+v = randi([0 M-1],N,1);
+
+<span class="comment">% modulate</span>
+v_mod = step(pskmod,v);
+<span class="comment">% transmit through channel</span>
+
+h = raychan1;
+v_raychan = [raychan1.*v_mod, raychan2.*v_mod];
+
+<span class="keyword">for</span> ii=1:n_iter
+    <span class="keyword">for</span> jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),<span class="string">'measured'</span>);
+
+       <span class="comment">% mrrc</span>
+       combiner(:,jj) = sum(conj(h).*v_rx,2)./sum(h.*conj(h),2);
+
+       <span class="comment">% demodulate</span>
+       v_demod(:,jj) = step(pskdemod,combiner(:,jj));
+
+    <span class="keyword">end</span>
+
+    <span class="comment">% compute ber</span>
+    [~,ber2] = biterr(v_demod,v);
+    ber_mrrc2(ii,:) = ber2;
+
+<span class="keyword">end</span>
+
+ber_mrrc2 = mean(ber_mrrc2,1);
+</pre><h2 id="5">simulation 3 - bpsk w/ mrrc (4 rx)</h2><pre class="codeinput"><span class="comment">% init</span>
+combiner = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+<span class="comment">% generate random message</span>
+v = randi([0 M-1],N,1);
+
+<span class="comment">% modulate</span>
+v_mod = step(pskmod,v);
+
+<span class="comment">% transmit through channel</span>
+v_raychan1 = raychan1.*v_mod;
+v_raychan2 = raychan2.*v_mod;
+v_raychan3 = raychan3.*v_mod;
+v_raychan4 = raychan4.*v_mod;
+
+h = [raychan1,raychan2, raychan3, raychan4];
+v_raychan = [v_raychan1, v_raychan2, v_raychan3, v_raychan4];
+
+<span class="keyword">for</span> ii=1:n_iter
+    <span class="keyword">for</span> jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),<span class="string">'measured'</span>);
+
+       <span class="comment">% mrrc</span>
+       combiner(:,jj) = sum(conj(h).*v_rx,2)./sum(h.*conj(h),2);
+
+       <span class="comment">% demodulate</span>
+       v_demod(:,jj) = step(pskdemod,combiner(:,jj));
+
+    <span class="keyword">end</span>
+
+    <span class="comment">% compute ber</span>
+    [~,ber3] = biterr(v_demod,v);
+    ber_mrrc4(ii,:) = ber3;
+
+<span class="keyword">end</span>
+
+ber_mrrc4 = mean(ber_mrrc4,1);
+</pre><h2 id="6">simulation 4 - bpsk w/ Alamouti coding (2 tx, 1 rx)</h2><pre class="codeinput"><span class="comment">% init</span>
+combiner = zeros(N,length(snr));
+v_decoded = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+<span class="comment">% generate random message</span>
+v = randi([0 M-1],N,1);
+
+<span class="comment">% modulate</span>
+v_mod = step(pskmod,v);
+
+<span class="comment">% alamouti coding</span>
+v_coded=zeros(N,2);
+
+s1=v_mod(1:2:end);
+s2=v_mod(2:2:end);
+
+v_coded(1:2:end,:)=sqrt(0.5)*[s1,s2];
+v_coded(2:2:end,:)=sqrt(0.5)*[-conj(s2),conj(s1)];
+
+<span class="comment">% transmit</span>
+h = sqrt(1/2)*kron([raychan1(1:N/2), raychan2(1:N/2)], [1;1]);
+v_raychan = h.*v_coded;
+
+<span class="keyword">for</span> ii=1:n_iter
+    <span class="keyword">for</span> jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),<span class="string">'measured'</span>);
+
+       combiner(:,jj) = sum(v_rx,2);
+
+       <span class="comment">% alamouti decoding</span>
+       u1 = combiner(1:2:end,jj); u2 = combiner(2:2:end,jj);
+       u = [kron(u1,[1;1]), kron(conj(u2),[1;1])];
+
+       h_rx = zeros(N,2);
+       h1=h(1:2:end,1);
+       h2=h(1:2:end,2);
+       h_rx(1:2:end,:) = [conj(h1), h2];
+       h_rx(2:2:end,:) = [conj(h2), -h1];
+
+       v_decoded(:,jj) = sum(h_rx.*u,2)./sum(h_rx.*conj(h_rx),2);
+
+       <span class="comment">% demodulate</span>
+       v_demod(:,jj) = step(pskdemod,v_decoded(:,jj));
+
+    <span class="keyword">end</span>
+
+    <span class="comment">% compute ber</span>
+    [~,ber4] = biterr(v_demod,v);
+    ber_alamouti2(ii,:) = ber4;
+
+<span class="keyword">end</span>
+
+ber_alamouti2 = mean(ber_alamouti2,1);
+</pre><h2 id="7">Simulate BPSK through rayleigh channel w/ Alamouti (2 Tx, 2 Rx)</h2><pre class="codeinput"><span class="comment">% init</span>
+combiner = zeros(N,2,length(snr));
+v_decoded = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+<span class="comment">% generate random message</span>
+v = randi([0 M-1],N,1);
+
+<span class="comment">% modulate</span>
+v_mod = step(pskmod,v);
+
+<span class="comment">% alamouti coding</span>
+v_coded=zeros(N,4);
+
+s1=v_mod(1:2:end);
+s2=v_mod(2:2:end);
+
+v_coded(1:2:end,:)=sqrt(1/2)*[s1,s2, s1,s2];
+v_coded(2:2:end,:)=sqrt(1/2)*[-conj(s2),conj(s1), -conj(s2),conj(s1)];
+
+<span class="comment">% transmit</span>
+h = sqrt(.5)*kron([raychan1(1:N/2), raychan2(1:N/2),<span class="keyword">...</span>
+    raychan3(1:N/2), raychan4(1:N/2)], [1;1]);
+v_raychan = h.*v_coded;
+
+<span class="keyword">for</span> ii=1:n_iter
+    <span class="keyword">for</span> jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),<span class="string">'measured'</span>);
+
+       <span class="comment">% combiner</span>
+       combiner(:,:,jj) = [sum(v_rx(:,1:2),2), sum(v_rx(:,3:4),2)];
+
+       <span class="comment">% alamouti decoding</span>
+       u11 = combiner(1:2:end,1,jj);
+       u21 = combiner(2:2:end,1,jj);
+       u12 = combiner(1:2:end,2,jj);
+       u22 = combiner(2:2:end,2,jj);
+
+       u = [kron(u11,[1;1]),kron(conj(u21),[1;1]),<span class="keyword">...</span>
+           kron(u12,[1;1]),kron(conj(u22),[1;1])];
+
+       h_rx = zeros(N,4);
+       h1=h(1:2:end,1);
+       h2=h(1:2:end,2);
+       h3=h(1:2:end,3);
+       h4=h(1:2:end,4);
+
+       h_rx(1:2:end,:) = [conj(h1),h2,  conj(h3),h4];
+       h_rx(2:2:end,:) = [conj(h2),-h1, conj(h4),-h3];
+
+       v_decoded(:,jj) = sum(h_rx.*u,2)./sum(h_rx.*conj(h_rx),2);
+
+       <span class="comment">% demodulate</span>
+       v_demod(:,jj) = step(pskdemod,v_decoded(:,jj));
+
+    <span class="keyword">end</span>
+
+    <span class="comment">% compute ber</span>
+    [~,ber5] = biterr(v_demod,v);
+    ber_alamouti4(ii,:) = ber5;
+<span class="keyword">end</span>
+
+ber_alamouti4 = mean(ber_alamouti4);
+</pre><h2 id="8">Plot</h2><pre class="codeinput">semilogy(snr,ber_bpsk,<span class="string">'-o'</span>,snr,ber_mrrc2,<span class="string">'-v'</span>,snr,ber_mrrc4,<span class="string">'-s'</span>,<span class="keyword">...</span>
+        snr,ber_alamouti2,<span class="string">'-d'</span>,snr,ber_alamouti4,<span class="string">'-^'</span>, <span class="string">'LineWidth'</span>, 2);
+title(<span class="string">'BER for BPSK through  a Rayleigh Channel'</span>,<span class="string">'FontSize'</span>, 14 );
+grid <span class="string">on</span>;
+xlabel(<span class="string">'Eb/No (dB)'</span>, <span class="string">'FontSize'</span>, 14);
+ylabel(<span class="string">'Bit Error Rate'</span>, <span class="string">'FontSize'</span>, 14);
+legend(<span class="string">'Uncoded (1 Tx, 1 Rx)'</span>,<span class="string">'MRRC (1 Tx, 2 Rx)'</span>,<span class="keyword">...</span>
+      <span class="string">'MRRC (1 Tx, 4 Rx)'</span>, <span class="string">'Alamouti (2 Tx, 1 Rx)'</span>,<span class="keyword">...</span>
+      <span class="string">'Alamouti (2 Tx, 2 Rx)'</span>);
+ax = gca;
+ax.LineWidth = 1.75;
+</pre><img vspace="5" hspace="5" src="alamouti_01.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% space-time diversity via Alamouti Codes
+% wireless link simulation over rayleigh flat-fading channel
+clc; clear all;
+
+%% simulation parameters
+
+% modulation order
+M = 2;
+
+% bits per symbol
+k = log2(M);
+
+% instantiating modulators
+pskmod = comm.PSKModulator(M,0);    
+pskdemod = comm.PSKDemodulator(M,0);
+
+EbNo = 0:2:50;                  
+snr = EbNo + 10*log10(k);       
+
+% messsage length 
+N = 1e6; 
+
+% number of iterations per simulaton
+n_iter = 20;
+
+% init ber vectors
+ber_bpsk = zeros(n_iter, length(snr));
+ber_mrrc2 = zeros(n_iter, length(snr));
+ber_mrrc4 = zeros(n_iter, length(snr));
+ber_alamouti2 = zeros(n_iter, length(snr));
+ber_alamouti4 = zeros(n_iter, length(snr));
+
+% generating Rayleigh flat-fading channels
+fd = 10; 
+raychan1 = rayleigh(fd, N);
+raychan2 = rayleigh(fd, N);
+raychan3 = rayleigh(fd, N);
+raychan4 = rayleigh(fd, N);
+
+%% simulation 1 - uncoded bpsk
+
+for ii=1:n_iter
+    % init 
+    v_demod = zeros(N,length(snr));
+    v_rx = zeros(N,length(snr));
+
+    % generate random message
+    v = randi([0 M-1],N,1);
+
+    % modulate
+    v_mod = step(pskmod,v);
+
+    % transmit through channel 
+    v_raychan = raychan1.*v_mod;
+
+    for jj=1:length(snr)
+
+       v_rx(:,jj) = awgn(v_raychan,snr(jj),'measured')./raychan1;
+
+       v_demod(:,jj) = step(pskdemod,v_rx(:,jj)); 
+
+    end
+    
+    % compute ber
+    [~,ber1] = biterr(v_demod,v);
+    ber_bpsk(ii,:) = ber1;
+    
+end
+
+ber_bpsk = mean(ber_bpsk,1);
+
+%% simulation 2 - bpsk w/ mrrc (2 rx)
+
+% init
+combiner = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+% generate random message
+v = randi([0 M-1],N,1);
+
+% modulate
+v_mod = step(pskmod,v);
+% transmit through channel 
+
+h = raychan1; 
+v_raychan = [raychan1.*v_mod, raychan2.*v_mod]; 
+
+for ii=1:n_iter
+    for jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),'measured'); 
+
+       % mrrc
+       combiner(:,jj) = sum(conj(h).*v_rx,2)./sum(h.*conj(h),2);
+
+       % demodulate
+       v_demod(:,jj) = step(pskdemod,combiner(:,jj)); 
+
+    end
+    
+    % compute ber
+    [~,ber2] = biterr(v_demod,v);
+    ber_mrrc2(ii,:) = ber2;
+    
+end
+
+ber_mrrc2 = mean(ber_mrrc2,1);
+
+%% simulation 3 - bpsk w/ mrrc (4 rx)
+
+% init
+combiner = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+% generate random message
+v = randi([0 M-1],N,1);
+
+% modulate
+v_mod = step(pskmod,v);
+
+% transmit through channel
+v_raychan1 = raychan1.*v_mod;
+v_raychan2 = raychan2.*v_mod; 
+v_raychan3 = raychan3.*v_mod; 
+v_raychan4 = raychan4.*v_mod; 
+
+h = [raychan1,raychan2, raychan3, raychan4]; 
+v_raychan = [v_raychan1, v_raychan2, v_raychan3, v_raychan4]; 
+
+for ii=1:n_iter
+    for jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),'measured'); 
+
+       % mrrc
+       combiner(:,jj) = sum(conj(h).*v_rx,2)./sum(h.*conj(h),2);
+
+       % demodulate
+       v_demod(:,jj) = step(pskdemod,combiner(:,jj)); 
+
+    end
+
+    % compute ber
+    [~,ber3] = biterr(v_demod,v);
+    ber_mrrc4(ii,:) = ber3;
+
+end
+
+ber_mrrc4 = mean(ber_mrrc4,1);
+
+%% simulation 4 - bpsk w/ Alamouti coding (2 tx, 1 rx)
+
+% init
+combiner = zeros(N,length(snr));
+v_decoded = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+% generate random message
+v = randi([0 M-1],N,1);
+
+% modulate
+v_mod = step(pskmod,v);
+
+% alamouti coding
+v_coded=zeros(N,2);
+
+s1=v_mod(1:2:end); 
+s2=v_mod(2:2:end);
+
+v_coded(1:2:end,:)=sqrt(0.5)*[s1,s2];
+v_coded(2:2:end,:)=sqrt(0.5)*[-conj(s2),conj(s1)];
+
+% transmit
+h = sqrt(1/2)*kron([raychan1(1:N/2), raychan2(1:N/2)], [1;1]); 
+v_raychan = h.*v_coded;
+
+for ii=1:n_iter
+    for jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),'measured'); 
+
+       combiner(:,jj) = sum(v_rx,2);
+
+       % alamouti decoding
+       u1 = combiner(1:2:end,jj); u2 = combiner(2:2:end,jj);
+       u = [kron(u1,[1;1]), kron(conj(u2),[1;1])]; 
+
+       h_rx = zeros(N,2); 
+       h1=h(1:2:end,1); 
+       h2=h(1:2:end,2);
+       h_rx(1:2:end,:) = [conj(h1), h2];
+       h_rx(2:2:end,:) = [conj(h2), -h1];
+
+       v_decoded(:,jj) = sum(h_rx.*u,2)./sum(h_rx.*conj(h_rx),2);
+
+       % demodulate
+       v_demod(:,jj) = step(pskdemod,v_decoded(:,jj)); 
+
+    end
+
+    % compute ber
+    [~,ber4] = biterr(v_demod,v);
+    ber_alamouti2(ii,:) = ber4;
+
+end
+
+ber_alamouti2 = mean(ber_alamouti2,1);
+
+%% Simulate BPSK through rayleigh channel w/ Alamouti (2 Tx, 2 Rx)
+
+% init
+combiner = zeros(N,2,length(snr));
+v_decoded = zeros(N,length(snr));
+v_demod = zeros(N,length(snr));
+
+% generate random message
+v = randi([0 M-1],N,1);
+
+% modulate
+v_mod = step(pskmod,v);
+
+% alamouti coding 
+v_coded=zeros(N,4);
+
+s1=v_mod(1:2:end); 
+s2=v_mod(2:2:end);
+
+v_coded(1:2:end,:)=sqrt(1/2)*[s1,s2, s1,s2];
+v_coded(2:2:end,:)=sqrt(1/2)*[-conj(s2),conj(s1), -conj(s2),conj(s1)];
+
+% transmit
+h = sqrt(.5)*kron([raychan1(1:N/2), raychan2(1:N/2),...
+    raychan3(1:N/2), raychan4(1:N/2)], [1;1]);
+v_raychan = h.*v_coded;
+
+for ii=1:n_iter
+    for jj=1:length(snr)
+
+       v_rx = awgn(v_raychan,snr(jj),'measured'); 
+
+       % combiner
+       combiner(:,:,jj) = [sum(v_rx(:,1:2),2), sum(v_rx(:,3:4),2)];
+
+       % alamouti decoding
+       u11 = combiner(1:2:end,1,jj); 
+       u21 = combiner(2:2:end,1,jj);
+       u12 = combiner(1:2:end,2,jj); 
+       u22 = combiner(2:2:end,2,jj);
+
+       u = [kron(u11,[1;1]),kron(conj(u21),[1;1]),...
+           kron(u12,[1;1]),kron(conj(u22),[1;1])]; 
+
+       h_rx = zeros(N,4); 
+       h1=h(1:2:end,1); 
+       h2=h(1:2:end,2); 
+       h3=h(1:2:end,3); 
+       h4=h(1:2:end,4);
+
+       h_rx(1:2:end,:) = [conj(h1),h2,  conj(h3),h4];
+       h_rx(2:2:end,:) = [conj(h2),-h1, conj(h4),-h3];
+
+       v_decoded(:,jj) = sum(h_rx.*u,2)./sum(h_rx.*conj(h_rx),2);
+
+       % demodulate
+       v_demod(:,jj) = step(pskdemod,v_decoded(:,jj)); 
+
+    end
+
+    % compute ber
+    [~,ber5] = biterr(v_demod,v);
+    ber_alamouti4(ii,:) = ber5;
+end
+
+ber_alamouti4 = mean(ber_alamouti4);
+
+%% Plot
+
+semilogy(snr,ber_bpsk,'-o',snr,ber_mrrc2,'-v',snr,ber_mrrc4,'-s',...
+        snr,ber_alamouti2,'-d',snr,ber_alamouti4,'-^', 'LineWidth', 2);
+title('BER for BPSK through  a Rayleigh Channel','FontSize', 14 );
+grid on;
+xlabel('Eb/No (dB)', 'FontSize', 14);
+ylabel('Bit Error Rate', 'FontSize', 14);
+legend('Uncoded (1 Tx, 1 Rx)','MRRC (1 Tx, 2 Rx)',...
+      'MRRC (1 Tx, 4 Rx)', 'Alamouti (2 Tx, 1 Rx)',...
+      'Alamouti (2 Tx, 2 Rx)');
+ax = gca;
+ax.LineWidth = 1.75;
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
