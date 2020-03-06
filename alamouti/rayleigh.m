@@ -1,6 +1,6 @@
 % simulating a rayleigh flat-fading channel
 
-function [chan] = rayleigh(fd, N)
+function chan = rayleigh(fd, N)
 
 % generating conjugate-symetric random gaussian vectors
 N = N/2;

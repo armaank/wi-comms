@@ -18,7 +18,7 @@ EbNo = 0:2:50;
 snr = EbNo + 10*log10(k);       
 
 % messsage length 
-N = 1e6; 
+N = 100; 
 
 % number of iterations per simulaton
 n_iter = 20;
