@@ -15,3 +15,8 @@ You can find my full report ![here](simple_link/report/report.pdf).
 Simulating transmitter space-time diversity for Rayleigh flat-fading channels
 
 You can find my full report ![here](alamouti/report/report.pdf).
+
+### Project 3: CDMA
+Building a simple CDMA receiver to decode a secret message
+
+You can find my full report ![here](cdma/report/report.pdf).

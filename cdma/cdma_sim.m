@@ -11,6 +11,11 @@ rx = rx.Rcvd; % received signal
 cr = 1e6; % code rate
 o_samp = 4; % oversample
 rrc_rolloff = .75; % roll off for RRC filter
+M = 2; % bpsk modulaton
+
+% instantiating modulators
+pskmod = comm.PSKModulator(M,0);    
+pskdemod = comm.PSKDemodulator(M,0);
 
 % M sequence
 seq_len = 255; 
@@ -34,3 +39,8 @@ rx_filter = filter(b_rrc,1, rx);
 
 % decimate filtered signal by oversampling factor
 rx_filter_dec = downsample(rx_filter,o_samp);
+
+
+
+
+
