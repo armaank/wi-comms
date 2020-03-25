@@ -4,11 +4,10 @@ function seq = lfsr(seq_len, poly, init)
     % change form of polynomial to companion set
     order = poly(1);
     poly = [poly(1), fliplr(order - poly(2:end))];
-    
-    % init lfsr w/ seed
+    % init lfsr
     lfsr = init;
-    seq = zeros(seq_len, 1);
-    
+    seq = zeros(seq_len,1);
+  
     % generate sequence
     for ii = 1:seq_len
         seq(ii) = lfsr(end);
