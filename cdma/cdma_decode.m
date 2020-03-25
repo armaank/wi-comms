@@ -68,7 +68,6 @@ pilot_last_demod = pskdemod(-pilot_last.').';
 pilot_first_phase = unwrap(angle(pilot_first));
 pilot_last_phase = unwrap(angle(pilot_last));
 
-
 pilot_first_freq = pilot_first_phase - pilot_first_demod*pi;
 pilot_last_freq = pilot_last_phase - pilot_last_demod*pi;
 
@@ -76,7 +75,7 @@ pilot_first_freq_diff = mod(diff(pilot_first_freq), 2*pi);
 pilot_last_freq_diff = mod(diff(pilot_last_freq), 2*pi);
 freq_offset_pc = median([pilot_first_freq_diff, pilot_last_freq_diff]);
 
-freq_offset = cr* freq_offset_pc / (2*pi)
+freq_offset_Hz = cr* freq_offset_pc / (2*pi)
 
 % re-shift the pilot in ordinance w/ the frequency offset to compute phase
 pilot_first_freq_offset = pilot_first.*...
@@ -85,8 +84,7 @@ pilot_first_freq_offset = pilot_first.*...
 phase_offset = median(angle(pilot_first.*...
     exp(-1i*freq_offset_pc*(0:length(pilot_first)-1))));
  
-phase_offset_deg = phase_offset*180 / pi
-
+phase_offset_Deg = phase_offset*180 / pi
 
 % extract data, reverse frequency and phase offset
 data_rx_offset = rx_filter_dec(cpf+offset : offset - 1 + (n_frames-1)*cpf);
@@ -126,7 +124,3 @@ pskdemod.release()
 
 bits = pskdemod((-H(6,:)*reshape(-pskmod((data)).',8,[])/8).');
 msg = char(bi2de(reshape(bits,8,[]).').')
-
-
-
-

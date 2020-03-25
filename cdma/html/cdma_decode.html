@@ -1,0 +1,332 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>cdma_decode</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-25"><meta name="DC.source" content="cdma_decode.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">CDMA Receiver</a></li><li><a href="#2">params</a></li><li><a href="#3">cdma decoding</a></li></ul></div><h2 id="1">CDMA Receiver</h2><pre class="codeinput">clear <span class="string">all</span>; clc;
+</pre><h2 id="2">params</h2><pre class="codeinput"><span class="comment">% load in received signal</span>
+rx = load(<span class="string">'./data/Rcvd_Kohli.mat'</span>);
+rx = rx.Rcvd; <span class="comment">% received signal</span>
+
+<span class="comment">% params</span>
+cr = 1e6; <span class="comment">% chip rate</span>
+o_samp = 4; <span class="comment">% oversample</span>
+rrc_rolloff = .75; <span class="comment">% roll off for RRC filter</span>
+M = 2; <span class="comment">% bpsk modulaton</span>
+cpf = 255; <span class="comment">% chips per frame</span>
+
+<span class="comment">% instantiating modulators</span>
+pskmod = comm.PSKModulator(M,0);
+pskdemod = comm.PSKDemodulator(M,0);
+
+<span class="comment">% M-sequence</span>
+seq_len = cpf;
+poly = [8 7 6 1];
+seed = [1, zeros(1,7)];
+M_seq = lfsr(seq_len, poly, seed);
+
+<span class="comment">% cfs for rrc filter</span>
+b_rrc = [0.0038; 0.0052; -0.0044; -0.0121; -0.0023; 0.0143; 0.0044;<span class="keyword">...</span>
+    -0.0385; -0.0563; 0.0363; 0.2554; 0.4968; 0.6025; 0.4968; .2554; <span class="keyword">...</span>
+    0.0363; -0.0563; -0.0385; 0.0044; 0.0143; -0.0023; -0.0121; <span class="keyword">...</span>
+    -0.0044; 0.0052; 0.0038];
+
+<span class="comment">% generating Walsh channel</span>
+H = hadamard(8);
+
+<span class="comment">% generating test pilot sequence</span>
+pilot = zeros(8*4,1);
+pilot_mod = pskmod(pilot);
+pilot_coded = (pilot_mod*H(1,:));
+pilot_rx = xor(pskdemod(pilot_coded(1:end-1).'),M_seq).';
+
+pskmod.release();
+pskdemod.release()
+
+pilot_rx_mod = -(pskmod(pilot_rx.')).';
+</pre><h2 id="3">cdma decoding</h2><pre class="codeinput"><span class="comment">% filter recieved signal</span>
+rx_filter = filter(b_rrc,1, rx);
+n_frames = length(rx)/(o_samp*cpf);
+
+<span class="comment">% decimate filtered signal by oversampling factor</span>
+rx_filter_dec = downsample(rx_filter,o_samp);
+
+<span class="comment">% using cross correlation of rx w/ m-sequence to determine offset</span>
+Exy = xcorr(abs(rx_filter_dec(1:cpf)), M_seq);
+offset = find(Exy &gt; 1 , 1, <span class="string">'first'</span>);
+
+<span class="comment">% extracting, demodulating first and last pilots</span>
+pilot_first = rx_filter_dec(offset: cpf + offset -1);
+pilot_last = rx_filter_dec(offset + (n_frames-1)*cpf:end);
+
+pilot_first_demod = pskdemod(-pilot_first.').';
+pilot_last_demod = pskdemod(-pilot_last.').';
+
+<span class="comment">% extracting phase to determine phase, frequency offsets</span>
+pilot_first_phase = unwrap(angle(pilot_first));
+pilot_last_phase = unwrap(angle(pilot_last));
+
+pilot_first_freq = pilot_first_phase - pilot_first_demod*pi;
+pilot_last_freq = pilot_last_phase - pilot_last_demod*pi;
+
+pilot_first_freq_diff = mod(diff(pilot_first_freq), 2*pi);
+pilot_last_freq_diff = mod(diff(pilot_last_freq), 2*pi);
+freq_offset_pc = median([pilot_first_freq_diff, pilot_last_freq_diff]);
+
+freq_offset_Hz = cr* freq_offset_pc / (2*pi)
+
+<span class="comment">% re-shift the pilot in ordinance w/ the frequency offset to compute phase</span>
+pilot_first_freq_offset = pilot_first.*<span class="keyword">...</span>
+    exp(-1j*freq_offset_pc*(0:length(pilot_first)-1));
+
+phase_offset = median(angle(pilot_first.*<span class="keyword">...</span>
+    exp(-1i*freq_offset_pc*(0:length(pilot_first)-1))));
+
+phase_offset_Deg = phase_offset*180 / pi
+
+<span class="comment">% extract data, reverse frequency and phase offset</span>
+data_rx_offset = rx_filter_dec(cpf+offset : offset - 1 + (n_frames-1)*cpf);
+
+data_rx = data_rx_offset<span class="keyword">...</span>
+    .*exp(-1j*freq_offset_pc*(cpf:cpf+length(data_rx_offset)-1))<span class="keyword">...</span>
+     .*exp(-1j*phase_offset);
+
+<span class="comment">% despread and decode data</span>
+data_pn = data_rx - repmat(pilot_rx_mod,1,n_frames-2);
+data_pn = bpskcdma(data_pn);
+
+frames = reshape(data_pn, cpf, []);
+
+data_frames_pn = frames(:,1:end-1);
+carrier_frame_pn = frames(:,end);
+data_frames = zeros(192,size(data_frames_pn,2));
+
+<span class="comment">% demodulate and unscramble data and carrier</span>
+<span class="keyword">for</span> ii = 1:(8*4)
+
+    data_frame_demod = data_frames_pn(find(data_frames_pn(:,ii)),ii)&gt;0;
+
+    data_frames(:,ii) = xor(data_frame_demod,M_seq(1:192));
+
+<span class="keyword">end</span>
+
+carrier_frame_demod = pskdemod(-carrier_frame_pn(find(carrier_frame_pn)));
+carrier_frame = xor(carrier_frame_demod,<span class="keyword">...</span>
+    M_seq(1:length(carrier_frame_demod)));
+
+<span class="comment">% decode final frames</span>
+data = [data_frames(:);carrier_frame(:)];
+
+pskmod.release()
+pskdemod.release()
+
+bits = pskdemod((-H(6,:)*reshape(-pskmod((data)).',8,[])/8).');
+msg = char(bi2de(reshape(bits,8,[]).').')
+</pre><pre class="codeoutput">
+freq_offset_Hz =
+
+  999.3824
+
+
+phase_offset_Deg =
+
+  -43.8959
+
+
+msg =
+
+    'Happiness can be found, even in the darkest of times, if one only remembers to turn on the light.'
+
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% CDMA Receiver
+
+clear all; clc;
+%% params
+
+% load in received signal
+rx = load('./data/Rcvd_Kohli.mat');
+rx = rx.Rcvd; % received signal
+
+% params
+cr = 1e6; % chip rate
+o_samp = 4; % oversample
+rrc_rolloff = .75; % roll off for RRC filter
+M = 2; % bpsk modulaton
+cpf = 255; % chips per frame
+
+% instantiating modulators
+pskmod = comm.PSKModulator(M,0);    
+pskdemod = comm.PSKDemodulator(M,0);
+
+% M-sequence
+seq_len = cpf; 
+poly = [8 7 6 1];
+seed = [1, zeros(1,7)];
+M_seq = lfsr(seq_len, poly, seed);
+
+% cfs for rrc filter
+b_rrc = [0.0038; 0.0052; -0.0044; -0.0121; -0.0023; 0.0143; 0.0044;...
+    -0.0385; -0.0563; 0.0363; 0.2554; 0.4968; 0.6025; 0.4968; .2554; ...
+    0.0363; -0.0563; -0.0385; 0.0044; 0.0143; -0.0023; -0.0121; ...
+    -0.0044; 0.0052; 0.0038]; 
+
+% generating Walsh channel
+H = hadamard(8);
+
+% generating test pilot sequence
+pilot = zeros(8*4,1);
+pilot_mod = pskmod(pilot);
+pilot_coded = (pilot_mod*H(1,:));
+pilot_rx = xor(pskdemod(pilot_coded(1:end-1).'),M_seq).';
+
+pskmod.release();
+pskdemod.release()
+
+pilot_rx_mod = -(pskmod(pilot_rx.')).';
+
+%% cdma decoding 
+
+% filter recieved signal 
+rx_filter = filter(b_rrc,1, rx);
+n_frames = length(rx)/(o_samp*cpf);
+
+% decimate filtered signal by oversampling factor
+rx_filter_dec = downsample(rx_filter,o_samp);
+
+% using cross correlation of rx w/ m-sequence to determine offset
+Exy = xcorr(abs(rx_filter_dec(1:cpf)), M_seq);
+offset = find(Exy > 1 , 1, 'first');
+
+% extracting, demodulating first and last pilots
+pilot_first = rx_filter_dec(offset: cpf + offset -1);
+pilot_last = rx_filter_dec(offset + (n_frames-1)*cpf:end);
+
+pilot_first_demod = pskdemod(-pilot_first.').';
+pilot_last_demod = pskdemod(-pilot_last.').';
+
+% extracting phase to determine phase, frequency offsets
+pilot_first_phase = unwrap(angle(pilot_first));
+pilot_last_phase = unwrap(angle(pilot_last));
+
+pilot_first_freq = pilot_first_phase - pilot_first_demod*pi;
+pilot_last_freq = pilot_last_phase - pilot_last_demod*pi;
+
+pilot_first_freq_diff = mod(diff(pilot_first_freq), 2*pi);
+pilot_last_freq_diff = mod(diff(pilot_last_freq), 2*pi);
+freq_offset_pc = median([pilot_first_freq_diff, pilot_last_freq_diff]);
+
+freq_offset_Hz = cr* freq_offset_pc / (2*pi)
+
+% re-shift the pilot in ordinance w/ the frequency offset to compute phase
+pilot_first_freq_offset = pilot_first.*...
+    exp(-1j*freq_offset_pc*(0:length(pilot_first)-1));
+
+phase_offset = median(angle(pilot_first.*...
+    exp(-1i*freq_offset_pc*(0:length(pilot_first)-1))));
+ 
+phase_offset_Deg = phase_offset*180 / pi
+
+% extract data, reverse frequency and phase offset
+data_rx_offset = rx_filter_dec(cpf+offset : offset - 1 + (n_frames-1)*cpf);
+
+data_rx = data_rx_offset...
+    .*exp(-1j*freq_offset_pc*(cpf:cpf+length(data_rx_offset)-1))...
+     .*exp(-1j*phase_offset);
+
+% despread and decode data
+data_pn = data_rx - repmat(pilot_rx_mod,1,n_frames-2);
+data_pn = bpskcdma(data_pn);
+
+frames = reshape(data_pn, cpf, []);
+
+data_frames_pn = frames(:,1:end-1);
+carrier_frame_pn = frames(:,end); 
+data_frames = zeros(192,size(data_frames_pn,2));
+
+% demodulate and unscramble data and carrier
+for ii = 1:(8*4)
+    
+    data_frame_demod = data_frames_pn(find(data_frames_pn(:,ii)),ii)>0;
+    
+    data_frames(:,ii) = xor(data_frame_demod,M_seq(1:192));
+
+end
+
+carrier_frame_demod = pskdemod(-carrier_frame_pn(find(carrier_frame_pn)));
+carrier_frame = xor(carrier_frame_demod,...
+    M_seq(1:length(carrier_frame_demod)));
+
+% decode final frames
+data = [data_frames(:);carrier_frame(:)];
+
+pskmod.release()
+pskdemod.release()
+
+bits = pskdemod((-H(6,:)*reshape(-pskmod((data)).',8,[])/8).');
+msg = char(bi2de(reshape(bits,8,[]).').')
+##### SOURCE END #####
+--></body></html>
