@@ -185,6 +185,14 @@ pskdemod.release()
 
 bits = pskdemod((-H(6,:)*reshape(-pskmod((data)).',8,[])/8).');
 msg = char(bi2de(reshape(bits,8,[]).').')
+
+
+sPlotFig = scatterplot(data_rx_offset,1,0,<span class="string">'r.'</span>);
+hold <span class="string">on</span>;
+scatterplot(data_rx,1,0,<span class="string">'b*'</span>,sPlotFig)
+hold <span class="string">off</span>;
+title(<span class="string">"Signal Constellation"</span>)
+legend(<span class="string">"recieved signal"</span>, <span class="string">"recieved signal w/ correction"</span>, <span class="string">'location'</span>, <span class="string">'best'</span>)
 </pre><pre class="codeoutput">
 freq_offset_Hz =
 
@@ -200,7 +208,7 @@ msg =
 
     'Happiness can be found, even in the darkest of times, if one only remembers to turn on the light.'
 
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="cdma_decode_01.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% CDMA Receiver
 
@@ -328,5 +336,13 @@ pskdemod.release()
 
 bits = pskdemod((-H(6,:)*reshape(-pskmod((data)).',8,[])/8).');
 msg = char(bi2de(reshape(bits,8,[]).').')
+
+
+sPlotFig = scatterplot(data_rx_offset,1,0,'r.');
+hold on;
+scatterplot(data_rx,1,0,'b*',sPlotFig)
+hold off;
+title("Signal Constellation")
+legend("recieved signal", "recieved signal w/ correction", 'location', 'best')
 ##### SOURCE END #####
 --></body></html>
