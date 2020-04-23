@@ -9,8 +9,8 @@ K = log2(M);
 % symbols per packet 
 n_syms = 1e4;
 
-% number of iterations per simulaton
-n_iter = 3;
+% number of channels
+n_chan = 3;
 
 % 2x2 mimo link
 Ntx = 2;
@@ -18,11 +18,11 @@ Nrx = 2;
 
 EbNo = -5:2:25;                  
 snr = EbNo + 10*log10(K);
-ber = zeros(3, n_iter, length(snr));
+ber = zeros(3, n_chan, length(snr));
 
-% gaussian channel
-H1 = sqrt(1/2)*(randn(Nrx, Ntx, n_syms*K, n_iter) +...
-    1j*randn(Nrx, Ntx, n_syms*K, n_iter));
+% three different flat fading channels 
+H = sqrt(1/2)*(randn(Nrx, Ntx, n_syms*K, n_chan) +...
+    1j*randn(Nrx, Ntx, n_syms*K, n_chan));
 
 %% precoding mimo
 
@@ -33,7 +33,7 @@ V = zeros(Nrx, Nrx, n_syms*K);
 precode = zeros(Nrx, 1, n_syms*K);
 postcode = zeros(Nrx, 1, n_syms*K);
 
-for ii = 1:n_iter
+for ii = 1:n_chan
 
     % generate and modulate random message
     bits = randi([0 M-1], Ntx, 1, n_syms*K);     
@@ -41,8 +41,8 @@ for ii = 1:n_iter
     
     % apply channel and perform pre-coding
     for kk=1:n_syms*K
-        [U(:,:,kk),S(:,:,kk),V(:,:,kk)] = svd(H1(:,:,kk,ii));
-        precode(:,:,kk) = H1(:,:,kk,ii)*V(:,:,kk)*tx(:,:,kk);
+        [U(:,:,kk),S(:,:,kk),V(:,:,kk)] = svd(H(:,:,kk,ii));
+        precode(:,:,kk) = H(:,:,kk,ii)*V(:,:,kk)*tx(:,:,kk);
     end
 
     for jj = 1:length(snr)
@@ -57,7 +57,7 @@ for ii = 1:n_iter
             postcode(:,:,kk) = (S(:,:,kk)^-1)*U(:,:,kk)'*tx(:,:,kk);
         end
         
-        rx = qamdemod(postcode,M);
+        rx = qamdemod(postcode, M);
 
         % compute ber curve
         [~, ber(1,ii,jj)] = biterr(bits, rx);
@@ -71,7 +71,7 @@ zf_eq = zeros(Nrx, 1, n_syms*K);
 txchan = zeros(Nrx, 1, n_syms*K); 
 W = zeros(Nrx, Ntx, n_syms*K);
 
-for ii = 1:n_iter
+for ii = 1:n_chan
 
     % generate and modulate random message
     bits = randi([0 M-1], Ntx, 1, n_syms*K);     
@@ -79,7 +79,7 @@ for ii = 1:n_iter
     
     % apply channel 
     for kk=1:n_syms*K
-        txchan(:,:,kk) = H1(:,:,kk,ii)*tx(:,:,kk);
+        txchan(:,:,kk) = H(:,:,kk,ii)*tx(:,:,kk);
     end
 
     for jj = 1:length(snr)
@@ -91,10 +91,12 @@ for ii = 1:n_iter
         
         % zf equalizer
         for kk=1:n_syms*K
-            W(:,:,kk) = (H1(:,:,kk,ii)'*H1(:,:,kk,ii))^-1*H1(:,:,kk,ii)';
+            W(:,:,kk) = (H(:,:,kk,ii)'*H(:,:,kk,ii))^-1*H(:,:,kk,ii)';
             zf_eq(:,:,kk) = W(:,:,kk)*tx(:,:,kk);
         end
-        rx = qamdemod(zf_eq,M);
+        
+        % demodulate
+        rx = qamdemod(zf_eq, M);
 
         % compute ber curve
         [~, ber(2,ii,jj)] = biterr(bits, rx);
@@ -104,12 +106,52 @@ end
 
 %% mmse mimo
 
+mmse_eq = zeros(Nrx, 1, n_syms*K);
+txchan = zeros(Nrx, 1, n_syms*K); 
+W = zeros(Nrx, Ntx, n_syms*K);
+
+for ii = 1:n_chan
+
+    % generate and modulate random message
+    bits = randi([0 M-1], Ntx, 1, n_syms*K);     
+    tx = qammod(bits, M); 
+    
+    % apply channel 
+    for kk=1:n_syms*K
+        txchan(:,:,kk) = H(:,:,kk,ii)*tx(:,:,kk);
+    end
+
+    for jj = 1:length(snr)
+        
+        n = sqrt(1/2)*(randn(Nrx, 1, n_syms*K)...
+            +1j*randn(Nrx, 1, n_syms*K));
+        
+        tx = txchan + 10^(-1*snr(jj)/20)*n;
+        
+        % mmse equalizer
+        for kk=1:n_syms*K
+            
+            W(:,:,kk) = (H(:,:,kk,ii)'*H(:,:,kk,ii) + ...
+                eye(Ntx)*10^(-1*snr(jj)/20))^-1 * H(:,:,kk,ii)';
+
+            mmse_eq(:,:,kk) = W(:,:,kk)*tx(:,:,kk);
+            
+        end
+        
+        % demodulate
+        rx = qamdemod(mmse_eq, M);
+
+        % compute ber curve
+        [~, ber(3,ii,jj)] = biterr(bits, rx);
+
+   end
+end
 
 %% ploting
 
-ber = mean(ber,2); %take mean across all iterations
+% average over the three flat-fading channels
+ber = mean(ber,2); 
 
-%plotting ber for different equalization techniques
 semilogy(EbNo,ber(1,:),'DisplayName','precoding');
 hold on;
 semilogy(EbNo,ber(2,:),'DisplayName','zero-forcing');

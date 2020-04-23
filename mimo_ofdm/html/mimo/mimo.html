@@ -1,0 +1,391 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>mimo</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-22"><meta name="DC.source" content="mimo.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">MIMO Link</a></li><li><a href="#2">simulation params</a></li><li><a href="#3">precoding mimo</a></li><li><a href="#4">zf mimo</a></li><li><a href="#5">mmse mimo</a></li><li><a href="#6">ploting</a></li></ul></div><h2 id="1">MIMO Link</h2><pre class="codeinput">clc; clear <span class="string">all</span>;
+</pre><h2 id="2">simulation params</h2><pre class="codeinput"><span class="comment">% modulation order</span>
+M = 16;
+K = log2(M);
+
+<span class="comment">% symbols per packet</span>
+n_syms = 1e4;
+
+<span class="comment">% number of channels</span>
+n_chan = 3;
+
+<span class="comment">% 2x2 mimo link</span>
+Ntx = 2;
+Nrx = 2;
+
+EbNo = -5:2:25;
+snr = EbNo + 10*log10(K);
+ber = zeros(3, n_chan, length(snr));
+
+<span class="comment">% three different flat fading channels</span>
+H = sqrt(1/2)*(randn(Nrx, Ntx, n_syms*K, n_chan) +<span class="keyword">...</span>
+    1j*randn(Nrx, Ntx, n_syms*K, n_chan));
+</pre><h2 id="3">precoding mimo</h2><pre class="codeinput">U = zeros(Nrx, Ntx, n_syms*K);
+S = zeros(Nrx, Ntx, n_syms*K);
+V = zeros(Nrx, Nrx, n_syms*K);
+
+precode = zeros(Nrx, 1, n_syms*K);
+postcode = zeros(Nrx, 1, n_syms*K);
+
+<span class="keyword">for</span> ii = 1:n_chan
+
+    <span class="comment">% generate and modulate random message</span>
+    bits = randi([0 M-1], Ntx, 1, n_syms*K);
+    tx = qammod(bits, M);
+
+    <span class="comment">% apply channel and perform pre-coding</span>
+    <span class="keyword">for</span> kk=1:n_syms*K
+        [U(:,:,kk),S(:,:,kk),V(:,:,kk)] = svd(H(:,:,kk,ii));
+        precode(:,:,kk) = H(:,:,kk,ii)*V(:,:,kk)*tx(:,:,kk);
+    <span class="keyword">end</span>
+
+    <span class="keyword">for</span> jj = 1:length(snr)
+
+        n = sqrt(1/2)*(randn(Nrx, 1, n_syms*K)<span class="keyword">...</span>
+            +1j*randn(Nrx, 1, n_syms*K));
+
+        tx = precode + 10^(-1*snr(jj)/20)*n;
+
+        <span class="comment">% post-coding</span>
+        <span class="keyword">for</span> kk=1:n_syms*K
+            postcode(:,:,kk) = (S(:,:,kk)^-1)*U(:,:,kk)'*tx(:,:,kk);
+        <span class="keyword">end</span>
+
+        rx = qamdemod(postcode, M);
+
+        <span class="comment">% compute ber curve</span>
+        [~, ber(1,ii,jj)] = biterr(bits, rx);
+
+   <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2 id="4">zf mimo</h2><pre class="codeinput">zf_eq = zeros(Nrx, 1, n_syms*K);
+txchan = zeros(Nrx, 1, n_syms*K);
+W = zeros(Nrx, Ntx, n_syms*K);
+
+<span class="keyword">for</span> ii = 1:n_chan
+
+    <span class="comment">% generate and modulate random message</span>
+    bits = randi([0 M-1], Ntx, 1, n_syms*K);
+    tx = qammod(bits, M);
+
+    <span class="comment">% apply channel</span>
+    <span class="keyword">for</span> kk=1:n_syms*K
+        txchan(:,:,kk) = H(:,:,kk,ii)*tx(:,:,kk);
+    <span class="keyword">end</span>
+
+    <span class="keyword">for</span> jj = 1:length(snr)
+
+        n = sqrt(1/2)*(randn(Nrx, 1, n_syms*K)<span class="keyword">...</span>
+            +1j*randn(Nrx, 1, n_syms*K));
+
+        tx = txchan + 10^(-1*snr(jj)/20)*n;
+
+        <span class="comment">% zf equalizer</span>
+        <span class="keyword">for</span> kk=1:n_syms*K
+            W(:,:,kk) = (H(:,:,kk,ii)'*H(:,:,kk,ii))^-1*H(:,:,kk,ii)';
+            zf_eq(:,:,kk) = W(:,:,kk)*tx(:,:,kk);
+        <span class="keyword">end</span>
+
+        <span class="comment">% demodulate</span>
+        rx = qamdemod(zf_eq, M);
+
+        <span class="comment">% compute ber curve</span>
+        [~, ber(2,ii,jj)] = biterr(bits, rx);
+
+   <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2 id="5">mmse mimo</h2><pre class="codeinput">mmse_eq = zeros(Nrx, 1, n_syms*K);
+txchan = zeros(Nrx, 1, n_syms*K);
+W = zeros(Nrx, Ntx, n_syms*K);
+
+<span class="keyword">for</span> ii = 1:n_chan
+
+    <span class="comment">% generate and modulate random message</span>
+    bits = randi([0 M-1], Ntx, 1, n_syms*K);
+    tx = qammod(bits, M);
+
+    <span class="comment">% apply channel</span>
+    <span class="keyword">for</span> kk=1:n_syms*K
+        txchan(:,:,kk) = H(:,:,kk,ii)*tx(:,:,kk);
+    <span class="keyword">end</span>
+
+    <span class="keyword">for</span> jj = 1:length(snr)
+
+        n = sqrt(1/2)*(randn(Nrx, 1, n_syms*K)<span class="keyword">...</span>
+            +1j*randn(Nrx, 1, n_syms*K));
+
+        tx = txchan + 10^(-1*snr(jj)/20)*n;
+
+        <span class="comment">% mmse equalizer</span>
+        <span class="keyword">for</span> kk=1:n_syms*K
+
+            W(:,:,kk) = (H(:,:,kk,ii)'*H(:,:,kk,ii) + <span class="keyword">...</span>
+                eye(Ntx)*10^(-1*snr(jj)/20))^-1 * H(:,:,kk,ii)';
+
+            mmse_eq(:,:,kk) = W(:,:,kk)*tx(:,:,kk);
+
+        <span class="keyword">end</span>
+
+        <span class="comment">% demodulate</span>
+        rx = qamdemod(mmse_eq, M);
+
+        <span class="comment">% compute ber curve</span>
+        [~, ber(3,ii,jj)] = biterr(bits, rx);
+
+   <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2 id="6">ploting</h2><pre class="codeinput"><span class="comment">% average over the three flat-fading channels</span>
+ber = mean(ber,2);
+
+semilogy(EbNo,ber(1,:),<span class="string">'DisplayName'</span>,<span class="string">'precoding'</span>);
+hold <span class="string">on</span>;
+semilogy(EbNo,ber(2,:),<span class="string">'DisplayName'</span>,<span class="string">'zero-forcing'</span>);
+hold <span class="string">on</span>;
+semilogy(EbNo,ber(3,:),<span class="string">'DisplayName'</span>,<span class="string">'mmse'</span>);
+
+title(<span class="string">'BER plots for MIMO schemes'</span>);
+xlabel(<span class="string">'EbNo (dB)'</span>);
+ylabel(<span class="string">'Bit Error Rate'</span>);
+legend(<span class="string">'show'</span>);
+</pre><img vspace="5" hspace="5" src="mimo_01.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% MIMO Link
+clc; clear all;
+%% simulation params
+
+% modulation order
+M = 16;
+K = log2(M);     
+
+% symbols per packet 
+n_syms = 1e4;
+
+% number of channels
+n_chan = 3;
+
+% 2x2 mimo link
+Ntx = 2;
+Nrx = 2;
+
+EbNo = -5:2:25;                  
+snr = EbNo + 10*log10(K);
+ber = zeros(3, n_chan, length(snr));
+
+% three different flat fading channels 
+H = sqrt(1/2)*(randn(Nrx, Ntx, n_syms*K, n_chan) +...
+    1j*randn(Nrx, Ntx, n_syms*K, n_chan));
+
+%% precoding mimo
+
+U = zeros(Nrx, Ntx, n_syms*K);
+S = zeros(Nrx, Ntx, n_syms*K);
+V = zeros(Nrx, Nrx, n_syms*K);
+
+precode = zeros(Nrx, 1, n_syms*K);
+postcode = zeros(Nrx, 1, n_syms*K);
+
+for ii = 1:n_chan
+
+    % generate and modulate random message
+    bits = randi([0 M-1], Ntx, 1, n_syms*K);     
+    tx = qammod(bits, M); 
+    
+    % apply channel and perform pre-coding
+    for kk=1:n_syms*K
+        [U(:,:,kk),S(:,:,kk),V(:,:,kk)] = svd(H(:,:,kk,ii));
+        precode(:,:,kk) = H(:,:,kk,ii)*V(:,:,kk)*tx(:,:,kk);
+    end
+
+    for jj = 1:length(snr)
+        
+        n = sqrt(1/2)*(randn(Nrx, 1, n_syms*K)...
+            +1j*randn(Nrx, 1, n_syms*K));
+        
+        tx = precode + 10^(-1*snr(jj)/20)*n;
+        
+        % post-coding
+        for kk=1:n_syms*K
+            postcode(:,:,kk) = (S(:,:,kk)^-1)*U(:,:,kk)'*tx(:,:,kk);
+        end
+        
+        rx = qamdemod(postcode, M);
+
+        % compute ber curve
+        [~, ber(1,ii,jj)] = biterr(bits, rx);
+
+   end
+end
+
+%% zf mimo
+
+zf_eq = zeros(Nrx, 1, n_syms*K);
+txchan = zeros(Nrx, 1, n_syms*K); 
+W = zeros(Nrx, Ntx, n_syms*K);
+
+for ii = 1:n_chan
+
+    % generate and modulate random message
+    bits = randi([0 M-1], Ntx, 1, n_syms*K);     
+    tx = qammod(bits, M); 
+    
+    % apply channel 
+    for kk=1:n_syms*K
+        txchan(:,:,kk) = H(:,:,kk,ii)*tx(:,:,kk);
+    end
+
+    for jj = 1:length(snr)
+        
+        n = sqrt(1/2)*(randn(Nrx, 1, n_syms*K)...
+            +1j*randn(Nrx, 1, n_syms*K));
+        
+        tx = txchan + 10^(-1*snr(jj)/20)*n;
+        
+        % zf equalizer
+        for kk=1:n_syms*K
+            W(:,:,kk) = (H(:,:,kk,ii)'*H(:,:,kk,ii))^-1*H(:,:,kk,ii)';
+            zf_eq(:,:,kk) = W(:,:,kk)*tx(:,:,kk);
+        end
+        
+        % demodulate
+        rx = qamdemod(zf_eq, M);
+
+        % compute ber curve
+        [~, ber(2,ii,jj)] = biterr(bits, rx);
+
+   end
+end
+
+%% mmse mimo
+
+mmse_eq = zeros(Nrx, 1, n_syms*K);
+txchan = zeros(Nrx, 1, n_syms*K); 
+W = zeros(Nrx, Ntx, n_syms*K);
+
+for ii = 1:n_chan
+
+    % generate and modulate random message
+    bits = randi([0 M-1], Ntx, 1, n_syms*K);     
+    tx = qammod(bits, M); 
+    
+    % apply channel 
+    for kk=1:n_syms*K
+        txchan(:,:,kk) = H(:,:,kk,ii)*tx(:,:,kk);
+    end
+
+    for jj = 1:length(snr)
+        
+        n = sqrt(1/2)*(randn(Nrx, 1, n_syms*K)...
+            +1j*randn(Nrx, 1, n_syms*K));
+        
+        tx = txchan + 10^(-1*snr(jj)/20)*n;
+        
+        % mmse equalizer
+        for kk=1:n_syms*K
+            
+            W(:,:,kk) = (H(:,:,kk,ii)'*H(:,:,kk,ii) + ...
+                eye(Ntx)*10^(-1*snr(jj)/20))^-1 * H(:,:,kk,ii)';
+
+            mmse_eq(:,:,kk) = W(:,:,kk)*tx(:,:,kk);
+            
+        end
+        
+        % demodulate
+        rx = qamdemod(mmse_eq, M);
+
+        % compute ber curve
+        [~, ber(3,ii,jj)] = biterr(bits, rx);
+
+   end
+end
+
+%% ploting
+
+% average over the three flat-fading channels
+ber = mean(ber,2); 
+
+semilogy(EbNo,ber(1,:),'DisplayName','precoding');
+hold on;
+semilogy(EbNo,ber(2,:),'DisplayName','zero-forcing');
+hold on;
+semilogy(EbNo,ber(3,:),'DisplayName','mmse');
+
+title('BER plots for MIMO schemes');
+xlabel('EbNo (dB)');
+ylabel('Bit Error Rate');
+legend('show');
+                  
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
