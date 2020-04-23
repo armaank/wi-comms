@@ -1,6 +1,6 @@
 %% OFDM simulation
 clc; clear all;
-%% params
+%% simulation parameters
 
 nIter = 3;  % The number of iterations of the simulation
 
