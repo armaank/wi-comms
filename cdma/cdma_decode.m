@@ -125,7 +125,6 @@ pskdemod.release()
 bits = pskdemod((-H(6,:)*reshape(-pskmod((data)).',8,[])/8).');
 msg = char(bi2de(reshape(bits,8,[]).').')
 
-
 sPlotFig = scatterplot(data_rx_offset,1,0,'r.');
 hold on;
 scatterplot(data_rx,1,0,'b*',sPlotFig)
