@@ -16,15 +16,11 @@ EbNo = -10:2:30;
 snr = EbNo + 10*log10(K);
 ber = zeros(3, n_chan, length(snr));
 
-%params for frequency selective channel models
+% params for frequency selective channel models
 Ts = 1e-3;
-Fd1 = 0;
-Fd2 = 10;
-tau = [0 Ts 2*Ts]; 
-pdb = [0 5 10]; 
-H = [rayleighchan(Ts, Fd1, tau, pdb), ...
-     rayleighchan(Ts, Fd2, tau, pdb),...
-     ricianchan(Ts, Fd1, tau, pdb)];   
+Fd=0;
+tau = [0 Ts Ts/2]; 
+pdb = [0 -5 -10]; 
 
 % number of fft/ifft points
 npt = 64; 
@@ -38,8 +34,8 @@ N_samp = N + mu; % total number of symbols per ofdm burst
 
 % frame indicies 
 pilot_idx = [11 25 39 53]; 
-% todo: fix this
-data_idx = [1:5 7:19 21:26 28:33 35:47 49:53]+5; %frame parameters
+tmp = [6:58];
+data_idx = setdiff(setdiff(tmp, pilot_idx), 27+5);
 
 %% zf ofdm
 
@@ -59,13 +55,13 @@ for ii = 1:n_chan
     ifft_ofdm = ifft(ofdm_frame,npt);
     ofdm_tx = [ifft_ofdm(N_d_syms+1:N,:); ifft_ofdm];
       
-    % select channel model
-    Hchan = H(:,ii);
-    chan = zeros(80,N_syms);
-    ofdm_tx_chan = zeros(80,N_syms);
-    for k=1:N_syms
-        chan(:,k) = filter(Hchan,ones(80,1));
-        ofdm_tx_chan(:,k) = chan(:,k).*ofdm_tx(:,k); %apply channel to signal
+    % generate random rayleigh channel
+    Hchan = rayleighchan(Ts, Fd, tau, pdb); 
+    chan = zeros(N_samp,N_syms);
+    ofdm_tx_chan = zeros(N_samp,N_syms);
+    for kk=1:N_syms
+        chan(:,kk) = filter(Hchan,ones(N_samp,1));
+        ofdm_tx_chan(:,kk) = chan(:,kk).*ofdm_tx(:,kk); %apply channel to signal
     end
 
     for jj = 1:length(snr)
@@ -113,12 +109,12 @@ for ii = 1:n_chan
     ofdm_tx = [ifft_ofdm(N_d_syms+1:N,:); ifft_ofdm];
       
     % select channel model
-    Hchan = H(:,ii);
+    Hchan = rayleighchan(Ts, Fd, tau, pdb);
     chan = zeros(80,N_syms);
     ofdm_tx_chan = zeros(80,N_syms);
-    for k=1:N_syms
-        chan(:,k) = filter(Hchan,ones(80,1));
-        ofdm_tx_chan(:,k) = chan(:,k).*ofdm_tx(:,k); %apply channel to signal
+    for kk=1:N_syms
+        chan(:,kk) = filter(Hchan,ones(80,1));
+        ofdm_tx_chan(:,kk) = chan(:,kk).*ofdm_tx(:,kk); %apply channel to signal
     end
 
     for jj = 1:length(snr)
@@ -150,7 +146,6 @@ for ii = 1:n_chan
    end
 end
 
-
 %% plot
 
 ber = mean(ber,2); %take mean across all channels
@@ -161,7 +156,7 @@ hold on;
 semilogy(EbNo,ber(2,:),'DisplayName','mmse');
 hold on;
 
-title('BER curves');
+title('BER plots for OFDM equalization schemes');
 xlabel('EbNo(dB)');
 ylabel('Bit Error Rate');
 legend('show');

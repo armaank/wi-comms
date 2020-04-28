@@ -1,0 +1,14 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{MIMO Link}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Channel Precoding}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{ZF Equalization}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{MMSE Equalization}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Results}{section.2}% 6
+\BOOKMARK [1][-]{section.3}{OFDM LINK}{}% 7
+\BOOKMARK [1][-]{section.4}{802.11a PHY Layer Overview}{}% 8
+\BOOKMARK [1][-]{section.5}{ZF Equalization}{}% 9
+\BOOKMARK [2][-]{subsection.5.1}{MMSE Equalization}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.2}{Results}{section.5}% 11
+\BOOKMARK [1][-]{section.6}{Hybrid MIMO-OFDM System}{}% 12
+\BOOKMARK [2][-]{subsection.6.1}{Results}{section.6}% 13
+\BOOKMARK [1][-]{section.7}{Conclusion}{}% 14

@@ -1,0 +1,86 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+%\usepackage[backend=bibtex,style=chem-rsc]{biblatex}
+\usepackage{lettrine}
+\usepackage{cite}
+\usepackage{float}
+\usepackage{blindtext}
+\usepackage{eso-pic}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{filecontents}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+\newcommand\AtPageUpperMyright[1]{\AtPageUpperLeft{%
+    \put(\LenToUnit{0.5\paperwidth},\LenToUnit{-1cm}){%
+     \parbox{0.5\textwidth}{\raggedleft\fontsize{9}{11}\selectfont #1}}%
+    }}%
+    \newcommand{\conf}[1]{%
+    \AddToShipoutPictureBG*{%
+    \AtPageUpperMyright{#1}}
+}
+
+\title{Sample paper}
+
+\author{
+  \IEEEauthorblockN{Armaan Kohli}
+  \IEEEauthorblockA{\textit{Department of Electrical Engineering} \\
+\textit{The Cooper Union for the Advancement of Science and Art}\\
+New York City, United States \\
+kohli@cooper.edu\\
+\href{github.com/armaank/wi-comms}{https://github.com/armaank/wi-comms}}}
+
+\begin{document}
+\title{MIMI-OFDM Wireless Link Simulations}
+
+\maketitle
+\conf{ECE-408: WIRELESS COMMUNICATIONS, April 2020}
+
+\begin{abstract}
+ We simulate a MIMO wireless link and implement a simple OFDM scheme based on the IEEE802.11a standard with several different types of equalization techniques. We then design a MIMO-OFDM system and conduct a performance analysis of the wireless link. 
+\end{abstract}
+
+\begin{IEEEkeywords}
+MIMO, OFDM, MIMO-OFDM, IEEE802.11a, channel estimation, zero-forcing equalization, minimum mean-squared error equalization.
+
+\end{IEEEkeywords}
+
+\section{Introduction}
+\lettrine[findent=2pt]{\textbf{M}}{ }IMO-OFDM is a technique used in large scale wireless systems. MIMO, multi-input mutli-output, in the context of communications, means that the system consists of multiple transmitters and multiple receivers. OFDM, orthogonal frequency division multiplexing, is a technique used to 
+
+\section{MIMO Link}
+
+\subsection{Channel Precoding}
+The first method for channel equalization is called 
+
+\subsection{ZF Equalization}
+
+\subsection{MMSE Equalization}
+
+\subsection{Results}
+
+\section{OFDM LINK}
+
+\section{802.11a PHY Layer Overview}
+
+\section{ZF Equalization}
+
+\subsection{MMSE Equalization}
+
+
+\subsection{Results}
+
+\section{Hybrid MIMO-OFDM System}
+
+\subsection{Results}
+
+\section{Conclusion} 
+We successfully simulated a MIMO wireless link and an OFDM scheme based on the IEEE802.11a PHY layer standard, experimenting with different methods for equalization and performance enhancement. We then implimented a hybrid MIMO-OFDM system and compared the performance of various equalization schemes.  
+
+\bibliographystyle{unsrt}
+\bibliography{bib}
+\end{document}
