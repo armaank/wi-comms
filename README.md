@@ -4,7 +4,7 @@ Simulations & Projects for ECE408: Wireless Communications
 
 All simulations are written in MATLAB2019b
 
-The only requirement to run the program is the comms toolbox
+The only requirement to run the various scripts is the communications toolbox
 
 ### Project 1: Simple Wireless Link
 Simulating QAM, equalizing channels and error control coding
